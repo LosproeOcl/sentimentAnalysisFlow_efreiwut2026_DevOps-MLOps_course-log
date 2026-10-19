@@ -144,6 +144,7 @@ Binary per aspect (positive vs negative); the "neutral" class is dropped at trai
 | Model | Where | macro-F1 (taste/service/price/ambience) |
 |-------|-------|------------------------------------------|
 | TF-IDF + LR (tuned) | CPU, `ml/train.py` | 0.738 / 0.784 / 0.786 / 0.760 |
+| TF-IDF + LR (search, per aspect) | CPU, `ml/train.py --mode search` | rerun to refresh |
 | BiLSTM | CPU, `ml/train_lstm.py` | weaker on this data |
 | BERT (bert-base-chinese, 3 ep) | AutoDL GPU, `ml/train_bert.py` | 0.758 / 0.806 / 0.758 / 0.824 |
 | RoBERTa (chinese-wwm-ext, 3 ep) | AutoDL GPU | 0.765 / 0.803 / 0.763 / 0.789 |
@@ -158,7 +159,8 @@ A separate **star-rating predictor** classifies the overall 1-5 rating (the `sta
 
 ```bash
 python -m ml.data_pipeline              # build v1/v2 CSVs
-python -m ml.train --data-version v2 --mode tuned   # TF-IDF + LR, logs to MLflow
+python -m ml.train --data-version v2 --mode tuned   # TF-IDF + LR, fixed tuned config
+python -m ml.train --data-version v2 --mode search --search-iter 8 --cv-folds 3  # per-aspect CV tuning
 python -m ml.train_lstm --data-version v2           # BiLSTM
 python -m ml.train_bert --data-dir data --epochs 3  # BERT/RoBERTa (GPU recommended)
 python -m ml.train_rating                           # star rating
@@ -184,13 +186,13 @@ Every requirement from `project-instructions.pdf`, with the steps to reproduce i
 
 ```bash
 python -m ml.data_pipeline
-python -m ml.train --data-version v2 --mode tuned
+python -m ml.train --data-version v2 --mode search --search-iter 8 --cv-folds 3
 python -m ml.train_bert --data-dir data --epochs 3
 ```
 
 **Dataset versions.** `data/processed/{train,val,test}_v1.csv` (raw) and `_v2.csv` (char-tokenized + deduplicated). Regenerate with `python -m ml.data_pipeline`.
 
-**Tests.** 33 pytest tests under `tests/` (unit + API), covering empty/whitespace input, unknown model, CSV import/export, CRUD, and batch delete. Run `python -m pytest`.
+**Tests.** 39 pytest tests under `tests/` (unit + API), covering empty/whitespace input, unknown model, CSV import/export, CRUD, batch delete, and the per-aspect training/search helpers. Run `python -m pytest`.
 
 ### DevOps
 

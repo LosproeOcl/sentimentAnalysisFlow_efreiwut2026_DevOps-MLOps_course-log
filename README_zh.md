@@ -144,6 +144,7 @@ dvc push
 | 模型 | 训练位置 | macro-F1（口味/服务/价格/环境） |
 |------|----------|------------------------------|
 | TF-IDF + LR（tuned） | CPU，`ml/train.py` | 0.738 / 0.784 / 0.786 / 0.760 |
+| TF-IDF + LR（search，逐维度调参） | CPU，`ml/train.py --mode search` | 重跑后刷新 |
 | BiLSTM | CPU，`ml/train_lstm.py` | 这份数据上偏弱 |
 | BERT（bert-base-chinese，3 epoch） | AutoDL GPU，`ml/train_bert.py` | 0.758 / 0.806 / 0.758 / 0.824 |
 | RoBERTa（chinese-wwm-ext，3 epoch） | AutoDL GPU | 0.765 / 0.803 / 0.763 / 0.789 |
@@ -158,7 +159,8 @@ dvc push
 
 ```bash
 python -m ml.data_pipeline              # 生成 v1/v2 CSV
-python -m ml.train --data-version v2 --mode tuned   # TF-IDF + LR，写 MLflow
+python -m ml.train --data-version v2 --mode tuned   # TF-IDF + LR（固定 tuned 配置）
+python -m ml.train --data-version v2 --mode search --search-iter 8 --cv-folds 3  # 逐维度交叉验证调参
 python -m ml.train_lstm --data-version v2           # BiLSTM
 python -m ml.train_bert --data-dir data --epochs 3  # BERT/RoBERTa（建议 GPU）
 python -m ml.train_rating                           # 星级评分
@@ -184,13 +186,13 @@ DagsHub 上注册：`absa_restaurant`（统一 TF-IDF+LR，Production）、`absa
 
 ```bash
 python -m ml.data_pipeline
-python -m ml.train --data-version v2 --mode tuned
+python -m ml.train --data-version v2 --mode search --search-iter 8 --cv-folds 3
 python -m ml.train_bert --data-dir data --epochs 3
 ```
 
 **数据集多版本。** `data/processed/{train,val,test}_v1.csv`（原始）与 `_v2.csv`（字符分词 + 去重），用 `python -m ml.data_pipeline` 重新生成。
 
-**测试。** `tests/` 下 33 个 pytest 测试（单元 + 接口），覆盖空/空白输入、未知模型、CSV 导入导出、CRUD、批量删除。运行 `python -m pytest`。
+**测试。** `tests/` 下 39 个 pytest 测试（单元 + 接口），覆盖空/空白输入、未知模型、CSV 导入导出、CRUD、批量删除，以及逐维度训练/调参辅助函数。运行 `python -m pytest`。
 
 ### DevOps
 

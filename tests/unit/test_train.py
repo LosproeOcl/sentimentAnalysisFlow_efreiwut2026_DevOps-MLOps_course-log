@@ -24,6 +24,7 @@ def test_build_pipeline_modes():
     assert baseline.named_steps["tfidf"].ngram_range == (1, 1)
     assert tuned.named_steps["tfidf"].ngram_range == (1, 2)
     assert tuned.named_steps["clf"].class_weight == "balanced"
+    assert train_mod.SEARCH_SPACE["tfidf__ngram_range"] == [(1, 2)]
 
     with pytest.raises(ValueError, match="unknown mode"):
         train_mod.build_pipeline("nope")

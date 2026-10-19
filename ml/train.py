@@ -49,10 +49,11 @@ EXPERIMENT_NAME = "absa_restaurant_aspects"
 
 MODEL_MODES = ("baseline", "tuned", "search")
 
-# Search space for --mode search. Keep it small enough to run on CPU.
-# The number of candidates is 2 * 3 * 2 * 4 * 2 = 96; --search-iter samples it.
+# Search space for --mode search. Character 3-grams explode the feature space
+# on Chinese text (too slow on CPU), so keep 1-2 grams only.
+# Candidates: 1 * 3 * 2 * 4 * 2 = 48; --search-iter samples them.
 SEARCH_SPACE: dict[str, list[Any]] = {
-    "tfidf__ngram_range": [(1, 2), (1, 3)],
+    "tfidf__ngram_range": [(1, 2)],
     "tfidf__min_df": [2, 3, 5],
     "tfidf__max_df": [1.0, 0.95],
     "clf__C": [0.25, 0.5, 1.0, 2.0],

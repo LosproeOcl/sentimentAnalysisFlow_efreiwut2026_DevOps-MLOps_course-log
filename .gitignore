@@ -1,3 +1,34 @@
+# Python
+.venv/
+__pycache__/
+*.py[cod]
+.ipynb_checkpoints/
+
+# DVC / MLflow local state
+.dvc/cache/
+.dvc/tmp/
+.dvc/config.local
+mlruns/
+mlflow.db
+
+# Secrets and local environment
+.env
+.env.*
+!.env.example
+*.secret
+
+# Office temporary files
+~$*
+*.tmp
+
+# Editor / OS
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Practice projects kept on their own branches
 git-playground/
 git-playground-peer/
 cars-crud/
@@ -7,4 +38,3 @@ node_modules/
 finalProject/
 fastApiPracticeProject/
 anaconda_projects/
-.ipynb_checkpoints/

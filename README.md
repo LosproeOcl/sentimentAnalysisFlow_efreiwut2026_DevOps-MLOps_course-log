@@ -20,10 +20,6 @@
 | GitHub | LosproeOcl（gh CLI 2.102.0，本地登录 qywkq） | ✅ |
 | DagsHub | losproeocl | ✅ |
 | Azure CLI | 2.91.0 | ✅ |
-| Azure 存储（DVC 远端） | `wut2026` / 容器 `dvc` | 待授权 |
-
-> DVC 数据存放在 Azure Blob。当前 Azure 账号可以登录，但还没有 `wut2026` 的 Blob 读取权限；
-> 完成授权或配置 SAS token 后即可执行 `dvc pull`。
 
 ## 二、快速开始
 

@@ -175,7 +175,7 @@ def main() -> int:
         for aspect in ASPECTS:
             if aspect not in models:
                 continue
-            info = mlflow.sklearn.log_model(models[aspect], f"models/{aspect}")
+            info = mlflow.sklearn.log_model(models[aspect], name=f"absa_restaurant_{aspect}")
             try:
                 mlflow.register_model(info.model_uri, f"absa_restaurant_{aspect}")
                 print(f"  [register] {aspect} -> absa_restaurant_{aspect}")

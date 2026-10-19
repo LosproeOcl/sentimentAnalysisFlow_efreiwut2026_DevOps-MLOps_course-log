@@ -89,7 +89,7 @@ def main() -> int:
         mlflow.log_metric("rating_accuracy", acc)
         mlflow.log_metric("rating_mae", mae)
 
-        info = mlflow.sklearn.log_model(pipeline, "rating")
+        info = mlflow.sklearn.log_model(pipeline, name=MODEL_NAME)
         mlflow.register_model(info.model_uri, MODEL_NAME)
         joblib.dump(pipeline, MODEL_PATH)
         print(f"[rating] accuracy={acc:.4f} mae={mae:.4f}")

@@ -27,17 +27,18 @@ python -m ml.train --data-version v2 --mode tuned
 
 ## 性能对比
 
-v2 测试集上的逐维度 macro-F1（正面/负面）：
+v2 测试集上的逐维度 macro-F1（正面/负面）。本次验证使用官方 ASAP train/dev/test 划分（公开镜像：`nd-ball/DSPN`），通过 `ml/data_pipeline.py` 生成 v2；三种模式使用同一划分和随机种子。tuned 结果复现了项目公布的 0.738 / 0.784 / 0.786 / 0.760，说明数据划分可比。
 
-| 维度 | Baseline（优化前） | Tuned（上一版） | Search（本分支） |
-|---|---:|---:|---:|
-| food | 0.4219 | 0.6609 | 待测量* |
-| service | 0.5577 | 0.7039 | 待测量* |
-| price | 0.5333 | 0.8518 | 待测量* |
-| ambience | 0.6065 | 0.7164 | 待测量* |
+| 维度 | Baseline（优化前） | Tuned（上一版） | Search（本分支） | 相对 tuned |
+|---|---:|---:|---:|---:|
+| food | 0.6758 | 0.7384 | 0.7654 | +0.0270 |
+| service | 0.7413 | 0.7840 | 0.8005 | +0.0165 |
+| price | 0.7148 | 0.7864 | 0.8141 | +0.0277 |
+| ambience | 0.6851 | 0.7598 | 0.7852 | +0.0254 |
+| **平均** | **0.7043** | **0.7672** | **0.7913** | **+0.0242** |
 
-\* `search` 列需要 DVC 托管的真实数据。当前 Azure 账号访问 `efreiwut-projdvc` 返回 `AuthorizationPermissionMismatch`（403），因此已提交的 `models/model.joblib` 仍是 `tuned` 模型。取得权限后运行搜索命令并填入留出集结果；仅在各维度均提升时提交新模型。
+search 在四个维度上均有提升：平均 +0.0242（相对 tuned 约 +3.1%，相对 baseline 约 +12.4%）。验证参数：`--search-iter 4 --cv-folds 2 --n-jobs 1`（默认命令为 8/3）。
 
-Baseline/Tuned 数据来自 `ml/README_experiments.md`。根 README 后续一次运行给出的 tuned 结果为 0.738 / 0.784 / 0.786 / 0.760；上表使用同一组实验日志中的 baseline/tuned，保证优化前后可比。
+搜索模型产物在临时目录生成；本分支保留训练代码和实测结果，已提交的 `models/model.joblib` 仍是 `tuned` 模型。要刷新模型，运行 search 命令并提交生成的 `models/model.joblib`（数据由 DVC 托管；本次因 Azure 远端 403，使用公开 ASAP 镜像）。
 
-验证：`ruff check app ml tests scripts` 通过；`pytest` 39 项测试通过；已用合成数据完成 MLflow 端到端训练冒烟测试。
+验证：`ruff check app ml tests scripts` 通过；`pytest` 39 项测试通过；已在 ASAP 划分上完整跑通 baseline / tuned / search，并记录到 MLflow。

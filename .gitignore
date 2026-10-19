@@ -23,6 +23,7 @@ models/lstm.joblib
 models/bert/
 models/roberta/
 models/rating_bert/
+models/*.pt
 
 # ---- MLflow local run history ----
 /mlruns/

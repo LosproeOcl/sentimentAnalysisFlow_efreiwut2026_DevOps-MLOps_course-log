@@ -7,3 +7,5 @@
   - `absa_restaurant` — unified TF-IDF + LR model (production)
   - `absa_restaurant_lstm` — BiLSTM alternative (underperforms on current small data)
 - **Optimized metric**: macro-F1 (binary positive/negative)
+- **Next refresh**: `python -m ml.train --data-version v2 --mode tuned`;
+  promote only when held-out macro-F1 improves on every aspect.

@@ -133,7 +133,9 @@ jobs:
     needs: publish-prod
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
-    environment: production
+    environment:
+      name: production
+      url: http://efrei-DevOps.losproeocl.cn
     steps:
       - name: Deploy via SSH
         uses: appleboy/ssh-action@v1.2.0

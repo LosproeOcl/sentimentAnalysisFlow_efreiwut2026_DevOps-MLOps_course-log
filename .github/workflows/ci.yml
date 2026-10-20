@@ -127,3 +127,28 @@ jobs:
           tags: |
             ${{ secrets.DOCKERHUB_USERNAME }}/absa-app:${{ steps.meta.outputs.version }}
             ${{ secrets.DOCKERHUB_USERNAME }}/absa-app:latest
+
+  deploy-prod:
+    name: Deploy to production server
+    needs: publish-prod
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    environment: production
+    steps:
+      - name: Deploy via SSH
+        uses: appleboy/ssh-action@v1.2.0
+        with:
+          host: ${{ secrets.DEPLOY_HOST }}
+          username: ${{ secrets.DEPLOY_USER }}
+          key: ${{ secrets.DEPLOY_SSH_KEY }}
+          port: 22
+          script: |
+            set -e
+            cd /opt/absa
+            git fetch --depth 1 origin main
+            git reset --hard origin/main
+            sed -i '/^models\/bert\//d; /^models\/roberta\//d; /^models\/rating_bert\//d' .dockerignore
+            docker build -f Dockerfile.full -t absa-app:full .
+            docker rm -f absa-full
+            docker run -d --name absa-full --restart unless-stopped -p 8000:8000 absa-app:full
+            echo "deploy done"

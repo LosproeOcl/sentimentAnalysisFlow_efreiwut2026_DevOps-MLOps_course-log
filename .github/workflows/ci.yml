@@ -147,8 +147,7 @@ jobs:
             cd /opt/absa
             git fetch --depth 1 origin main
             git reset --hard origin/main
-            sed -i '/^models\/bert\//d; /^models\/roberta\//d; /^models\/rating_bert\//d' .dockerignore
             docker build -f Dockerfile.full -t absa-app:full .
             docker rm -f absa-full
-            docker run -d --name absa-full --restart unless-stopped -p 8000:8000 absa-app:full
+            docker run -d --name absa-full --restart unless-stopped -p 8000:8000 -v /opt/absa/models:/app/models absa-app:full
             echo "deploy done"

@@ -1,10 +1,10 @@
 # Full deployment: CPU-only torch + transformers + all models
 # (TF-IDF + BERT + RoBERTa aspects, TF-IDF + RoBERTa rating).
 #
-# The slim Dockerfile (Dockerfile) ships only the TF-IDF models; this variant
-# includes the large BERT/RoBERTa weights (~1.2 GB) and the deep-learning stack
-# so every model is available. Build with a permissive .dockerignore that keeps
-# models/bert, models/roberta and models/rating_bert in the context.
+# The large BERT/RoBERTa weights (~1.2 GB) are NOT baked into the image; they
+# are mounted at runtime from the host's models/ directory, keeping the image
+# small (~2 GB) so it builds within the VPS disk budget. Mount with:
+#   docker run -v /opt/absa/models:/app/models ...
 
 FROM node:20-alpine AS frontend
 WORKDIR /app
@@ -24,7 +24,6 @@ RUN python -m pip install --no-cache-dir -r requirements-full.txt
 
 COPY app/ ./app/
 COPY ml/ ./ml/
-COPY models/ ./models/
 COPY data/demo.csv ./data/demo.csv
 COPY --from=frontend /app/dist ./frontend/dist
 

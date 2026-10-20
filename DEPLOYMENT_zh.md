@@ -46,17 +46,17 @@ docker run -p 8000:8000 absa-app
 
 ## 全量部署（全部模型）
 
-默认镜像只包含 TF-IDF 模型（体积小、CPU 友好）。要提供 BERT/RoBERTa 方面模型和 RoBERTa 星级模型（约 1.2 GB 权重），请用 `Dockerfile.full` 构建，它会安装 CPU 版 torch + transformers 并拷贝整个 `models/` 目录。
-
-大权重（`models/bert/`、`models/roberta/`、`models/rating_bert/`）已 gitignore，必须存在于构建上下文。全量构建前先删掉 `.dockerignore` 中的对应行：
+默认镜像只包含 TF-IDF 模型（体积小、CPU 友好）。要提供 BERT/RoBERTa 方面模型和 RoBERTa 星级模型（约 1.2 GB 权重），请用 `Dockerfile.full` 构建，它会安装 CPU 版 torch + transformers。大权重**不打进镜像**，而是在运行时从宿主机 `models/` 目录挂载，镜像因此只有约 2 GB，能塞进小 VPS 的磁盘预算。
 
 ```bash
-sed -i '/^models\/bert\//d; /^models\/roberta\//d; /^models\/rating_bert\//d' .dockerignore
 docker build -f Dockerfile.full -t absa-app:full .
-docker run -d --name absa-full --restart unless-stopped -p 8000:8000 absa-app:full
+docker run -d --name absa-full --restart unless-stopped -p 8000:8000 \
+  -v /opt/absa/models:/app/models absa-app:full
 ```
 
-全量镜像约占 4 GB 磁盘。运行时全部模型加载约占 2 GB 内存，因此在内存较小（≤4 GB）的 VPS 上需要加 swap：
+宿主机的 `models/` 目录需包含被 gitignore 的大权重（`models/bert/`、`models/roberta/`、`models/rating_bert/`）以及已提交的 `model.joblib` / `rating.joblib`。
+
+运行时全部模型加载约占 2 GB 内存，因此在内存较小（≤4 GB）的 VPS 上需要加 swap：
 
 ```bash
 fallocate -l 4G /swapfile && chmod 600 /swapfile && mkswap /swapfile && swapon /swapfile
@@ -76,13 +76,13 @@ echo '/swapfile none swap sw 0 0' >> /etc/fstab
 git clone --depth 1 https://github.com/LosproeOcl/WUT-DevOps-Course.git /opt/absa
 #    然后把 models/bert、models/roberta、models/rating_bert scp 到 /opt/absa/models/
 
-# 3. 构建全量镜像
+# 3. 构建全量镜像（模型挂载，不打进镜像）
 cd /opt/absa
-sed -i '/^models\/bert\//d; /^models\/roberta\//d; /^models\/rating_bert\//d' .dockerignore
 docker build -f Dockerfile.full -t absa-app:full .
 
-# 4. 在空闲端口（8000）运行应用
-docker run -d --name absa-full --restart unless-stopped -p 8000:8000 absa-app:full
+# 4. 在空闲端口（8000）运行应用，挂载 models 目录
+docker run -d --name absa-full --restart unless-stopped -p 8000:8000 \
+  -v /opt/absa/models:/app/models absa-app:full
 ```
 
 ### 反向代理

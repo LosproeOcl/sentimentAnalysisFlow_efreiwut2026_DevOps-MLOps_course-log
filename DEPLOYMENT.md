@@ -52,21 +52,23 @@ docker run -p 8000:8000 absa-app
 
 The default image ships only the TF-IDF models (small, CPU-friendly). To serve
 the BERT/RoBERTa aspect models and the RoBERTa rating model (~1.2 GB of weights),
-build `Dockerfile.full`, which installs CPU-only torch + transformers and copies
-the entire `models/` directory.
-
-The large weights (`models/bert/`, `models/roberta/`, `models/rating_bert/`) are
-gitignored and must be present in the build context. For the full build, drop
-the corresponding lines from `.dockerignore` first:
+build `Dockerfile.full`, which installs CPU-only torch + transformers. The large
+weights are **not baked into the image** — they are mounted at runtime from the
+host `models/` directory, keeping the image ~2 GB so it builds within a small
+VPS's disk budget.
 
 ```bash
-sed -i '/^models\/bert\//d; /^models\/roberta\//d; /^models\/rating_bert\//d' .dockerignore
 docker build -f Dockerfile.full -t absa-app:full .
-docker run -d --name absa-full --restart unless-stopped -p 8000:8000 absa-app:full
+docker run -d --name absa-full --restart unless-stopped -p 8000:8000 \
+  -v /opt/absa/models:/app/models absa-app:full
 ```
 
-The full image is ~4 GB on disk. At runtime it loads ~2 GB RAM when all models
-are in use, so add swap on small VPSes (4 GB RAM or less):
+The `models/` directory on the host must contain the gitignored large weights
+(`models/bert/`, `models/roberta/`, `models/rating_bert/`) plus the committed
+`model.joblib` / `rating.joblib`.
+
+At runtime it loads ~2 GB RAM when all models are in use, so add swap on small
+VPSes (4 GB RAM or less):
 
 ```bash
 fallocate -l 4G /swapfile && chmod 600 /swapfile && mkswap /swapfile && swapon /swapfile
@@ -87,13 +89,13 @@ Deployment steps (run as root on the server):
 git clone --depth 1 https://github.com/LosproeOcl/WUT-DevOps-Course.git /opt/absa
 #    then scp models/bert, models/roberta, models/rating_bert into /opt/absa/models/
 
-# 3. build the full image
+# 3. build the full image (models are mounted, not baked in)
 cd /opt/absa
-sed -i '/^models\/bert\//d; /^models\/roberta\//d; /^models\/rating_bert\//d' .dockerignore
 docker build -f Dockerfile.full -t absa-app:full .
 
-# 4. run the app on a free port (8000)
-docker run -d --name absa-full --restart unless-stopped -p 8000:8000 absa-app:full
+# 4. run the app on a free port (8000), mounting the models dir
+docker run -d --name absa-full --restart unless-stopped -p 8000:8000 \
+  -v /opt/absa/models:/app/models absa-app:full
 ```
 
 ### Reverse proxy
